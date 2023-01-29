@@ -1,13 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
 
-// replace the value below with the Telegram token you receive from @BotFather
 const token = process.env['TOKEN'];
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
 
 // Matches "/echo [whatever]"
-bot.onText(/\/echo.+/, (msg, match) => {
+bot.onText(/\/help/, (msg, match) => {
   // 'msg' is the received Message from Telegram
   // 'match' is the result of executing the regexp above on the text content
   // of the message
@@ -23,21 +22,12 @@ bot.onText(/\/echo.+/, (msg, match) => {
 // messages.
 bot.on('message', (msg) => {
 
-
   const https = require('node:https');
-
-
   const chatId = msg.chat.id;
   const regex = /((?<=https:\/\/www.tiktok.com.+)[0-9]{15,})|(?<=https:\/\/vt.tiktok.com\/+).{5,}/
-
   const video_id = msg.text.match(regex)[0];
-
   const proxitok_link = "https://proxitok.pabloferreiro.es/@placeholder/video/" + String(video_id)
-
-  const video_link_regex = /(?<= href=").+.(?= class="dropdown-item">No watermark)/
-
-
-
+  const video_link_regex = /(?<= href=").+.(?= class="button is-success">No watermark)/
 
   https.get(proxitok_link, (res) => {
 
@@ -52,21 +42,25 @@ bot.on('message', (msg) => {
     res.on('end', () => {
       //.match(video_link_regex)[0]
 
-      bot.sendVideo(chatId, data.match(video_link_regex)[0].slice(0, -2));
-      //console.log(msg)
-      bot.deleteMessage(chatId, msg.message_id)
+
+      console.log(data)
+      //console.log(data.match(video_link_regex))
+      var link = data.match(video_link_regex);
+
+      if (link != null) {
+        link = link[0].slice(0, -2);
+        console.log(link);
+
+        bot.sendVideo(chatId, link);
+        bot.deleteMessage(chatId, msg.message_id)
+      } else {
+        bot.sendMessage(chatId, "cant download video");
+      }
+
+
     });
 
   }).on('error', (e) => {
     console.error(e);
   });
-
-
-
-
-  //https://proxitok.pabloferreiro.es/@placeholder/video/ZS8AAePL7/
-
-
-  //console.log(msg.text.match(regex)[0])
-
 });
